@@ -1,0 +1,14 @@
+{
+    "autoload": {
+        "psr-4": {
+            "ShootDemo\\": "src"
+        }
+    },
+    "require": {
+        "guzzlehttp/psr7": "^1.4",
+        "league/container": "^3.2",
+        "psr/http-message": "^1.0",
+        "shoot/shoot": "^0.4.0",
+        "twig/twig": "^2.5"
+    }
+}
