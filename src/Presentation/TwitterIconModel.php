@@ -23,7 +23,7 @@ class TwitterIconModel extends PresentationModel implements HasPresenterInterfac
     /**
      * @return string
      */
-    public function getPresenter(): string
+    public function getPresenterName(): string
     {
         return TwitterIconPresenter::class;
     }
