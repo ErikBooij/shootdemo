@@ -2,7 +2,14 @@
 declare(strict_types=1);
 
 use GuzzleHttp\Psr7\ServerRequest;
+use Idealo\Middleware\Stack;
 use League\Container\Container;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Shoot\Shoot\Http\ShootMiddleware;
+use Shoot\Shoot\Installer;
 use Shoot\Shoot\Middleware\PresenterMiddleware;
 use Shoot\Shoot\Pipeline;
 use ShootDemo\Application\SocialMediaAccountRepository;
@@ -10,6 +17,8 @@ use ShootDemo\Domain\User;
 use ShootDemo\Presentation\TwitterIconPresenter;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
+use Zend\Diactoros\Response\EmptyResponse;
+use Zend\Diactoros\Response\HtmlResponse;
 
 include __DIR__ . '/../vendor/autoload.php';
 
@@ -21,15 +30,48 @@ $twig = new Environment($loader);
 $container = new Container();
 $container->add(TwitterIconPresenter::class, new TwitterIconPresenter(new SocialMediaAccountRepository));
 
-// Create Shoot's presenter middleware and add Shoot to Twig
+// Create Shoot's presenter middleware
 $presenterMiddleware = new PresenterMiddleware($container);
 $pipeline = new Pipeline([$presenterMiddleware]);
-$twig->addExtension($pipeline);
+$installer = new Installer($pipeline);
+
+// Add Shoot to Twig
+$twig = $installer->install($twig);
 
 // Fake adding the logged in user to the PSR-7 request
-$request = ServerRequest::fromGlobals()->withAttribute('loggedInUser', new User('Rasmus'));
+$request = ServerRequest::fromGlobals()
+    ->withAttribute('loggedInUser', new User('Rasmus'));
 
-// Pass the request as context to the pipeline and pass a callback that renders a template in twig
-$pipeline->withContext($request, function () use ($twig) {
-    echo $twig->render('social-icons.twig');
-});
+// Create the middleware stack (in this case with an anonymous class as "controller")
+$middlewareStack = new Stack(
+    new EmptyResponse(),
+    new ShootMiddleware($pipeline),
+    new class ($twig) implements MiddlewareInterface  {
+        /** @var Environment */
+        private $twig;
+
+        /**
+         * @param Environment $twig
+         */
+        public function __construct(Environment $twig)
+        {
+            $this->twig = $twig;
+        }
+
+        /**
+         * @param ServerRequestInterface  $request
+         * @param RequestHandlerInterface $handler
+         *
+         * @return ResponseInterface|void
+         */
+        public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
+            return new HtmlResponse($this->twig->render('social-icons.twig'));
+        }
+    }
+);
+
+// Execute the middleware stack
+$response = $middlewareStack->handle($request);
+
+// Emit the response
+(new Zend\HttpHandlerRunner\Emitter\SapiEmitter)->emit($response);
