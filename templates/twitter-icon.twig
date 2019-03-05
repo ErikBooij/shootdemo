@@ -1,8 +1,0 @@
-{% model 'ShootDemo\\Presentation\\TwitterIconModel' %}
-
-<div class="twitter-link">
-    <a class="twitter-icon--large"
-       href="https://twitter.com/{{ twitter_handle }}"
-       {% if user_is_logged_in %}data-tooltip="Why don't you follow us on Twitter, {{ user_first_name }}?"{% endif %}
-    >{{ twitter_account_name }}</a>
-</div>
