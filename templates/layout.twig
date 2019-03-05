@@ -1,0 +1,23 @@
+{% model 'ShootDemo\\Presentation\\BlogPostModel' %}
+
+<html lang="en">
+<head>
+    <title>{% if post_exists %}{{ post_title }}{% else %}404 - Not Found{% endif %}</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+{% if post_exists %}
+    <h1>{{ post_title }}</h1>
+    {% for paragraph in post_content %}
+        <p>{{ paragraph }}</p>
+    {% endfor %}
+{% else %}
+    <h1>Post not found</h1>
+    <p>
+        This post could not be retrieved. Check out the other posts:
+    </p>
+{% endif %}
+
+<a href="/?postId=1">Post 1</a> &nbsp; <a href="/?postId=2">Post 2</a>
+</body>
+</html>

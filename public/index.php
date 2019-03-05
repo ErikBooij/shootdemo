@@ -12,9 +12,8 @@ use Shoot\Shoot\Http\ShootMiddleware;
 use Shoot\Shoot\Installer;
 use Shoot\Shoot\Middleware\PresenterMiddleware;
 use Shoot\Shoot\Pipeline;
-use ShootDemo\Application\SocialMediaAccountRepository;
-use ShootDemo\Domain\User;
-use ShootDemo\Presentation\TwitterIconPresenter;
+use ShootDemo\Infrastructure\BlogPostRepository;
+use ShootDemo\Presentation\BlogPostPresenter;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Zend\Diactoros\Response\EmptyResponse;
@@ -28,7 +27,7 @@ $twig = new Environment($loader);
 
 // Set up a PSR-11 compliant container that Shoot uses to load presenters
 $container = new Container();
-$container->add(TwitterIconPresenter::class, new TwitterIconPresenter(new SocialMediaAccountRepository));
+$container->add(BlogPostPresenter::class, new BlogPostPresenter(new BlogPostRepository));
 
 // Create Shoot's presenter middleware
 $presenterMiddleware = new PresenterMiddleware($container);
@@ -38,36 +37,38 @@ $installer = new Installer($pipeline);
 // Add Shoot to Twig
 $twig = $installer->install($twig);
 
-// Fake adding the logged in user to the PSR-7 request
-$request = ServerRequest::fromGlobals()
-    ->withAttribute('loggedInUser', new User('Rasmus'));
+// Create a ServerRequest the easy way
+$request = ServerRequest::fromGlobals();
+
+$requestHandler = new class ($twig) implements MiddlewareInterface  {
+    /** @var Environment */
+    private $twig;
+
+    /**
+     * @param Environment $twig
+     */
+    public function __construct(Environment $twig)
+    {
+        $this->twig = $twig;
+    }
+
+    /**
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     *
+     * @return ResponseInterface|void
+     */
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        return new HtmlResponse($this->twig->render('layout.twig'));
+    }
+};
 
 // Create the middleware stack (in this case with an anonymous class as "controller")
 $middlewareStack = new Stack(
     new EmptyResponse(),
     new ShootMiddleware($pipeline),
-    new class ($twig) implements MiddlewareInterface  {
-        /** @var Environment */
-        private $twig;
-
-        /**
-         * @param Environment $twig
-         */
-        public function __construct(Environment $twig)
-        {
-            $this->twig = $twig;
-        }
-
-        /**
-         * @param ServerRequestInterface  $request
-         * @param RequestHandlerInterface $handler
-         *
-         * @return ResponseInterface|void
-         */
-        public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
-            return new HtmlResponse($this->twig->render('social-icons.twig'));
-        }
-    }
+    $requestHandler
 );
 
 // Execute the middleware stack
