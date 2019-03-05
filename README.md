@@ -1,6 +1,6 @@
 # Shoot Demo
 
-This is a tiny demo implementation of [Shoot](https://github.com/shootphp/shoot) and serves a reference implementation to play around with for my blog post on using Shoot for [lazily loading template data](https://erik.booij.me/lazily-loading-template-data-with-twig-shoot/).
+This is a tiny demo implementation of [Shoot](https://github.com/shootphp/shoot) and serves a reference implementation to play around with for my blog post on using Shoot for [lazily loading template data](https://dev.to/erikbooij/lazily-loading-template-data-in-php-with-twig-and-shoot-3gka).
 
 ## Install
 
