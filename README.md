@@ -4,4 +4,4 @@ This is a tiny demo implementation of [Shoot](https://github.com/shootphp/shoot)
 
 ## Install
 
-Simply clone/download, run `composer install` and point your webserver at `public/index.php`.
+Simply clone/download, run `composer install` and point your webserver at `public/index.php` (or `composer run` which will start PHP's built-in web server on port 80).
