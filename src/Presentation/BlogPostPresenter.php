@@ -15,11 +15,11 @@ class BlogPostPresenter implements PresenterInterface
     private $blogPostRepository;
 
     /**
-     * @param BlogPostRepositoryInterface $socialMediaAccountRepository
+     * @param BlogPostRepositoryInterface $blogPostRepository
      */
-    public function __construct(BlogPostRepositoryInterface $socialMediaAccountRepository)
+    public function __construct(BlogPostRepositoryInterface $blogPostRepository)
     {
-        $this->blogPostRepository = $socialMediaAccountRepository;
+        $this->blogPostRepository = $blogPostRepository;
     }
 
     /**
